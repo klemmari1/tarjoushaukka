@@ -1,0 +1,6 @@
+beautifulsoup4
+black
+Flask-API
+isort
+pip-tools
+requests
