@@ -30,13 +30,25 @@ class Post:
             pickle.dump(posts, posts_file)
 
     @staticmethod
-    def delete_posts() -> None:
+    def delete_all_posts() -> None:
         with open(POSTS_FILE, "wb") as posts_file:
             pickle.dump({}, posts_file)
 
     @staticmethod
     def print_posts() -> None:
         pprint.pprint(Post.load_posts())
+
+    def delete_old_posts(self) -> None:
+        from post_service import get_last_page_url
+
+        posts_dict = self.load_posts()
+        last_page_url = get_last_page_url()
+        last_page = int(last_page_url.split("-")[-1])
+        for post_id, post in dict(posts_dict).items():
+            if post["page"] < last_page - 1:
+                del posts_dict[post_id]
+
+        self.save_posts(posts_dict)
 
     def to_dict(self) -> dict:
         post_dict = self.__dict__

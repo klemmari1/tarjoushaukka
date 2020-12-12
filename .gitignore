@@ -42,4 +42,6 @@ pydevd*.log
 nodeLanguageServer/**
 nodeLanguageServer.*/**
 
+.vscode
 posts.pkl
+.env

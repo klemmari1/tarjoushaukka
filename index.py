@@ -1,6 +1,6 @@
 from flask_api import FlaskAPI
 
-from services import PostService
+from post_service import get_posts
 
 app = FlaskAPI(__name__)
 
@@ -12,7 +12,7 @@ def home():
 
 @app.route("/posts/", methods=["GET"])
 def posts_list():
-    return PostService.get_posts()
+    return get_posts()
 
 
 if __name__ == "__main__":
