@@ -25,4 +25,6 @@ def send_mail(hilights: List[Post]) -> None:
         print(message)
 
         mail = Mail(from_email, to_email, subject, content)
-        sg.client.mail.send.post(request_body=mail.get())
+        response = sg.client.mail.send.post(request_body=mail.get())
+        print(response.status_code)
+        print(response.body)
