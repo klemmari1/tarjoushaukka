@@ -20,12 +20,13 @@ markupsafe==1.1.1         # via jinja2
 mypy-extensions==0.4.3    # via black
 pathspec==0.8.1           # via black
 pip-tools==5.4.0          # via -r requirements.in
+python-dateutil==2.8.1    # via -r requirements.in
 python-dotenv==0.15.0     # via -r requirements.in
 python-http-client==3.3.1  # via sendgrid
 regex==2020.11.13         # via black
 requests==2.25.0          # via -r requirements.in
 sendgrid==6.4.8           # via -r requirements.in
-six==1.15.0               # via pip-tools
+six==1.15.0               # via pip-tools, python-dateutil
 soupsieve==2.1            # via beautifulsoup4
 starkbank-ecdsa==1.1.0    # via sendgrid
 toml==0.10.2              # via black

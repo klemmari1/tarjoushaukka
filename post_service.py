@@ -1,8 +1,10 @@
+import datetime
 import re
 from typing import List, Tuple
 
 import requests
 from bs4 import BeautifulSoup
+from dateutil.parser import parse
 
 import settings
 from mail_service import send_mail
@@ -47,8 +49,9 @@ def fetch_posts_from_url(url: str, page_number: int) -> List[Post]:
         post_id = int(post["data-content"].split("-")[-1])
         post_url = post.find("a", {"class": "u-concealed"})["href"]
         post_content = post.find("div", {"class": "bbWrapper"}).text
+        post_datetime = parse(post.find("time", {"class": "u-dt"})["datetime"])
         reactions_link = post.find("a", {"class": "reactionsBar-link"})
-        reactions_count = 2
+        reactions_count = 3
         if reactions_link:
             reactions_text = reactions_link.text
             p = re.compile("ja (.*) muuta")
@@ -57,11 +60,12 @@ def fetch_posts_from_url(url: str, page_number: int) -> List[Post]:
                 reactions_count += int(reactions[0])
         posts_list.append(
             Post(
-                post_id,
-                reactions_count,
-                page_number,
-                settings.BASE_URL + post_url,
-                post_content.strip(),
+                id=post_id,
+                likes=reactions_count,
+                page=page_number,
+                time=post_datetime,
+                url=settings.BASE_URL + post_url,
+                content=post_content.strip(),
             )
         )
     return posts_list
@@ -80,7 +84,11 @@ def check_new_posts_and_hilights(
                 hilights.append(post)
         else:
             prev_likes = posts_dict[post_id]["likes"]
-            if prev_likes < 5 and post.likes >= 5:
+            if (
+                prev_likes < 5
+                and post.likes >= 5
+                and post.time >= datetime.now() - datetime.timedelta(hours=5)
+            ):
                 hilights.append(post)
     return hilights
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import pickle
 import pprint
 from dataclasses import dataclass
+from datetime import datetime
 from os import path
 
 POSTS_FILE = "posts.pkl"
@@ -13,6 +14,7 @@ class Post:
     id: int
     likes: int
     page: int
+    time: datetime
     url: str
     content: str
 
@@ -38,17 +40,18 @@ class Post:
     def print_posts() -> None:
         pprint.pprint(Post.load_posts())
 
-    def delete_old_posts(self) -> None:
+    @staticmethod
+    def delete_old_posts() -> None:
         from post_service import get_last_page_url
 
-        posts_dict = self.load_posts()
+        posts_dict = Post.load_posts()
         last_page_url = get_last_page_url()
         last_page = int(last_page_url.split("-")[-1])
         for post_id, post in dict(posts_dict).items():
             if post["page"] < last_page - 1:
                 del posts_dict[post_id]
 
-        self.save_posts(posts_dict)
+        Post.save_posts(posts_dict)
 
     def to_dict(self) -> dict:
         post_dict = self.__dict__

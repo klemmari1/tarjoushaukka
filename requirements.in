@@ -4,5 +4,6 @@ Flask-API
 isort
 pip-tools
 python-dotenv
+python-dateutil
 requests
 sendgrid

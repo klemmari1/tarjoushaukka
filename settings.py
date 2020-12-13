@@ -2,7 +2,8 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()
+if os.path.exists(".env"):
+    load_dotenv()
 
 
 BASE_URL = "https://bbs.io-tech.fi/"
@@ -21,6 +22,6 @@ HEADERS = {
 # Load ENV variables
 FROM_EMAIL = os.getenv("FROM_EMAIL")
 
-TO_EMAIL = os.getenv("TO_EMAIL")
+TO_EMAIL = os.getenv("TO_EMAIL").split(" ")
 
 EMAIL_API_KEY = os.getenv("EMAIL_API_KEY")
