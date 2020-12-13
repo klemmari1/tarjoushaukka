@@ -45,3 +45,4 @@ nodeLanguageServer.*/**
 .vscode
 posts.pkl
 .env
+az_commands.txt

@@ -1,5 +1,5 @@
-import datetime
 import re
+from datetime import datetime, timezone
 from typing import List, Tuple
 
 import requests
@@ -87,9 +87,11 @@ def check_new_posts_and_hilights(
             if (
                 prev_likes < 5
                 and post.likes >= 5
-                and post.time >= datetime.now() - datetime.timedelta(hours=5)
+                and (datetime.now(timezone.utc) - post.time).total_seconds()
+                <= 5 * 60 * 60  # 5 hours
             ):
                 hilights.append(post)
+            posts_dict[post_id] = post.to_dict()
     return hilights
 
 
