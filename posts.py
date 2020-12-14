@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from os import path
 
-POSTS_FILE = "posts.pkl"
+from settings import POSTS_FILE
 
 
 @dataclass

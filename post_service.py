@@ -54,7 +54,7 @@ def fetch_posts_from_url(url: str, page_number: int) -> List[Post]:
         reactions_count = 3
         if reactions_link:
             reactions_text = reactions_link.text
-            p = re.compile("ja (.*) muuta")
+            p = re.compile(" ja (.*) muuta")
             reactions = p.findall(reactions_text)
             if reactions:
                 reactions_count += int(reactions[0])
