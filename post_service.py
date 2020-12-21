@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from dateutil.parser import parse
 
 import settings
-from mail_service import send_mail
+from mail_service import send_mail, send_tg
 from posts import Post
 
 
@@ -49,6 +49,7 @@ def fetch_posts_from_url(url: str, page_number: int) -> List[Post]:
         post_id = int(post["data-content"].split("-")[-1])
         post_url = post.find("a", {"class": "u-concealed"})["href"]
         post_content = str(post.find("div", {"class": "bbWrapper"}))
+        post_content_plain = post.find("div", {"class": "bbWrapper"}).text
         post_datetime = parse(post.find("time", {"class": "u-dt"})["datetime"])
         reactions_link = post.find("a", {"class": "reactionsBar-link"})
         reactions_count = 3
@@ -66,6 +67,7 @@ def fetch_posts_from_url(url: str, page_number: int) -> List[Post]:
                 time=post_datetime,
                 url=settings.BASE_URL + post_url,
                 content=post_content.strip(),
+                content_plain=post_content_plain.strip(),
             )
         )
     return posts_list
@@ -112,7 +114,10 @@ def fetch_posts():
     )
     hilights2 = check_new_posts_and_hilights(posts_dict, posts2)
 
-    send_mail(hilights1 + hilights2)
+    hilights = hilights1 + hilights2
+    hilights = sorted(hilights, key=lambda item: item.time, reverse=True)
+    send_mail(hilights)
+    send_tg(hilights)
 
     save_posts(posts_dict)
 

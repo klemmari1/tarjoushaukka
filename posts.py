@@ -17,6 +17,7 @@ class Post:
     time: datetime
     url: str
     content: str
+    content_plain: str
 
     @staticmethod
     def load_posts() -> dict:
@@ -28,6 +29,7 @@ class Post:
 
     @staticmethod
     def save_posts(posts: dict) -> None:
+        posts = Post.sort_dict(posts)
         with open(POSTS_FILE, "wb") as posts_file:
             pickle.dump(posts, posts_file)
 
@@ -52,6 +54,15 @@ class Post:
                 del posts_dict[post_id]
 
         Post.save_posts(posts_dict)
+
+    @staticmethod
+    def sort_dict(post_dict):
+        return {
+            k: v
+            for k, v in sorted(
+                post_dict.items(), key=lambda item: item[1]["time"], reverse=True
+            )
+        }
 
     def to_dict(self) -> dict:
         post_dict = self.__dict__

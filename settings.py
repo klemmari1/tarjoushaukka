@@ -21,8 +21,12 @@ HEADERS = {
 
 
 # Load ENV variables
-FROM_EMAIL = os.getenv("FROM_EMAIL")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "test")
 
-TO_EMAIL = os.getenv("TO_EMAIL").split(", ")
+TO_EMAIL = os.getenv("TO_EMAIL", "test, test").split(", ")
 
-EMAIL_API_KEY = os.getenv("EMAIL_API_KEY")
+EMAIL_API_KEY = os.getenv("EMAIL_API_KEY", "test")
+
+TG_SEND_URL = os.getenv("TG_SEND_URL", "http://localhost:5000")
+
+TG_KEY = os.getenv("TG_KEY", "test")

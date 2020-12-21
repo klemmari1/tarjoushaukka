@@ -2,6 +2,7 @@ beautifulsoup4
 black
 Flask-API
 isort
+PyJWT
 pip-tools
 python-dotenv
 python-dateutil
