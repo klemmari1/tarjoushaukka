@@ -48,7 +48,7 @@ def fetch_posts_from_url(url: str, page_number: int) -> List[Post]:
     for post in posts:
         post_id = int(post["data-content"].split("-")[-1])
         post_url = post.find("a", {"class": "u-concealed"})["href"]
-        post_content = post.find("div", {"class": "bbWrapper"}).text
+        post_content = str(post.find("div", {"class": "bbWrapper"}))
         post_datetime = parse(post.find("time", {"class": "u-dt"})["datetime"])
         reactions_link = post.find("a", {"class": "reactionsBar-link"})
         reactions_count = 3

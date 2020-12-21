@@ -12,12 +12,12 @@ def send_mail(hilights: List[Post]) -> None:
         hilight_messages = (
             f"{hilight.url}\n\n{hilight.content}" for hilight in hilights
         )
-        message = "\n\n\n\n".join(hilight_messages)
+        message = "<br/> <br/> <br/> <br/>".join(hilight_messages)
 
         sg = sendgrid.SendGridAPIClient(api_key=settings.EMAIL_API_KEY)
         from_email = Email(settings.FROM_EMAIL)
         subject = "You have new sale alerts!"
-        content = Content("text/plain", message)
+        content = Content("text/html", message)
         print(settings.FROM_EMAIL)
         print(settings.TO_EMAIL)
         print(settings.EMAIL_API_KEY)
