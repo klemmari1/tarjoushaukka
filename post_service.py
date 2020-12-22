@@ -1,3 +1,4 @@
+import pprint
 import re
 from datetime import datetime, timezone
 from typing import List, Tuple
@@ -5,25 +6,35 @@ from typing import List, Tuple
 import requests
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
+from flask import jsonify
+from sqlalchemy import desc
 
 import settings
 from mail_service import send_mail, send_tg
-from posts import Post
+from posts import Post, db
 
 
-def get_posts() -> dict:
-    return Post.load_posts()
+def get_posts() -> List[Post]:
+    return Post.query.order_by(desc(Post.time)).all()
 
 
-def save_posts(posts: dict) -> None:
-    Post.save_posts(posts)
+def delete_all_posts() -> None:
+    posts = Post.query.all()
+    for post in posts:
+        db.session.delete(post)
+    db.session.commit()
+
+
+def print_posts() -> None:
+    posts = get_posts()
+    pprint.pprint(jsonify(posts))
 
 
 def get_soup(url: str) -> BeautifulSoup:
     response = requests.get(url, headers=settings.HEADERS)
     if not response.ok:
         raise Exception(
-            f"Failed to fetch soup! Status: {response.status}. Content: {response.content}."
+            f"Failed to fetch soup! Status: {response.status_code}. Content: {response.content.decode('utf-8')}."
         )
     return BeautifulSoup(response.content, features="html.parser")
 
@@ -40,87 +51,116 @@ def get_last_page_url() -> str:
     return url
 
 
-def fetch_posts_from_url(url: str, page_number: int) -> List[Post]:
-    soup = get_soup(url)
-    posts_list = []
+def add_hilight(post: Post, hilights: List[Post], prev_likes: int):
+    if (
+        prev_likes < 5
+        and post.likes >= 5
+        and (datetime.now(timezone.utc) - post.time).total_seconds()
+        <= 3 * 60 * 60  # 5 hours
+    ):
+        hilights.append(post)
 
-    posts = soup.findAll("article", {"class": "message"})
-    for post in posts:
-        post_id = int(post["data-content"].split("-")[-1])
-        post_url = post.find("a", {"class": "u-concealed"})["href"]
-        post_content = str(post.find("div", {"class": "bbWrapper"}))
-        post_content_plain = post.find("div", {"class": "bbWrapper"}).text
-        post_datetime = parse(post.find("time", {"class": "u-dt"})["datetime"])
-        reactions_link = post.find("a", {"class": "reactionsBar-link"})
-        reactions_count = 3
-        if reactions_link:
-            reactions_text = reactions_link.text
-            p = re.compile(" ja (.*) muuta")
-            reactions = p.findall(reactions_text)
-            if reactions:
-                reactions_count += int(reactions[0])
-        posts_list.append(
-            Post(
-                id=post_id,
-                likes=reactions_count,
-                page=page_number,
-                time=post_datetime,
-                url=settings.BASE_URL + post_url,
-                content=post_content.strip(),
-                content_plain=post_content_plain.strip(),
-            )
+
+def handle_bs_and_create_hilights(
+    hilights: List[Post],
+    post_bs: BeautifulSoup,
+    saved_posts: List[Post],
+    page_number: int,
+) -> None:
+    post_id = int(post_bs["data-content"].split("-")[-1])
+    post_url = post_bs.find("a", {"class": "u-concealed"})["href"]
+    post_content = str(post_bs.find("div", {"class": "bbWrapper"}))
+    post_content_plain = post_bs.find("div", {"class": "bbWrapper"}).text
+    post_datetime = parse(post_bs.find("time", {"class": "u-dt"})["datetime"])
+    reactions_link = post_bs.find("a", {"class": "reactionsBar-link"})
+    reactions_count = 3
+    if reactions_link:
+        reactions_text = reactions_link.text
+        p = re.compile(" ja (.*) muuta")
+        reactions = p.findall(reactions_text)
+        if reactions:
+            reactions_count += int(reactions[0])
+
+    existing_post = next((x for x in saved_posts if x.id == post_id), None)
+    if not existing_post:
+        post = Post(
+            id=post_id,
+            likes=reactions_count,
+            page=page_number,
+            time=post_datetime,
+            url=settings.BASE_URL + post_url,
+            content=post_content.strip(),
+            content_plain=post_content_plain.strip(),
         )
-    return posts_list
+        db.session.add(post)
+        add_hilight(post, hilights, 0)
+    else:
+        prev_likes = existing_post.likes
+        existing_post.likes = reactions_count
+        add_hilight(existing_post, hilights, prev_likes)
 
 
-def check_new_posts_and_hilights(
-    posts_dict: dict, new_posts: list
-) -> Tuple[dict, List[Post]]:
-    hilights = []
-    post_ids = posts_dict.keys()
-    for post in new_posts:
-        post_id = post.id
-        if post_id not in post_ids:
-            posts_dict[post_id] = post.to_dict()
-            if post.likes >= 5:
-                hilights.append(post)
-        else:
-            prev_likes = posts_dict[post_id]["likes"]
-            if (
-                prev_likes < 5
-                and post.likes >= 5
-                and (datetime.now(timezone.utc) - post.time).total_seconds()
-                <= 5 * 60 * 60  # 5 hours
-            ):
-                hilights.append(post)
-            posts_dict[post_id] = post.to_dict()
+def fetch_hilights_from_url(
+    url: str, saved_posts: List[Post], page_number: int
+) -> List[Post]:
+    hilights: List[Post] = []
+
+    soup = get_soup(url)
+    posts = soup.findAll("article", {"class": "message"})
+    for post_bs in posts:
+        handle_bs_and_create_hilights(hilights, post_bs, saved_posts, page_number)
     return hilights
 
 
 def fetch_posts():
-    posts_dict = get_posts()
-
     last_page_url = get_last_page_url()
     last_page_url_split = last_page_url.split("-")
     last_page_number = int(last_page_url_split[-1])
     last_page_url_split[-1] = str(last_page_number - 1)
     second_to_last_page_url = "-".join(last_page_url_split)
 
-    posts1 = fetch_posts_from_url(settings.BASE_URL + last_page_url, last_page_number)
-    hilights1 = check_new_posts_and_hilights(posts_dict, posts1)
-
-    posts2 = fetch_posts_from_url(
-        settings.BASE_URL + second_to_last_page_url, last_page_number - 1
+    saved_posts = get_posts()
+    # Last page
+    hilights1 = fetch_hilights_from_url(
+        settings.BASE_URL + last_page_url, saved_posts, last_page_number
     )
-    hilights2 = check_new_posts_and_hilights(posts_dict, posts2)
+
+    # Second to last page
+    hilights2 = fetch_hilights_from_url(
+        settings.BASE_URL + second_to_last_page_url,
+        saved_posts,
+        last_page_number - 1,
+    )
+    db.session.commit()
 
     hilights = hilights1 + hilights2
-    hilights = sorted(hilights, key=lambda item: item.time, reverse=True)
+    hilights = sorted(hilights, key=lambda item: item.time, reverse=True)[
+        :2
+    ]  # Limit hilights to latest 2.
     send_mail(hilights)
     send_tg(hilights)
 
-    save_posts(posts_dict)
+
+def delete_old_posts() -> None:
+    last_page_url = get_last_page_url()
+    last_page = int(last_page_url.split("-")[-1])
+    posts = Post.query.filter(Post.page < last_page - 1)
+    for post in posts:
+        db.session.delete(post)
+    db.session.commit()
 
 
 if __name__ == "__main__":
+    from sqlalchemy import create_engine
+    from index import app
+
+    conn_str = "sqlite:///app.db"
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = conn_str
+
+    db.init_app(app)
+    app.app_context().push()
+    db.create_all()
+
+    db.create_all()
     fetch_posts()

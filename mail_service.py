@@ -1,4 +1,5 @@
 import datetime
+import time
 from typing import List
 
 import jwt
@@ -25,20 +26,21 @@ def get_auth_token():
 def send_tg(hilights: List[Post]) -> None:
     if not hilights:
         return
-    hilight = hilights[0]
-    message = f"{hilight.url}\n\n{hilight.content_plain}"
-    auth_token, success = get_auth_token()
-    if success:
-        try:
-            response = requests.post(
-                settings.TG_SEND_URL,
-                data=message.encode("utf-8"),
-                headers={"Authorization": auth_token},
-            )
-            print(response.status_code)
-            print(response.content)
-        except Exception as e:
-            print(str(e))
+    for hilight in hilights:
+        message = f"{hilight.url}\n\n{hilight.content_plain}"
+        auth_token, success = get_auth_token()
+        if success:
+            try:
+                response = requests.post(
+                    settings.TG_SEND_URL,
+                    data=message.encode("utf-8"),
+                    headers={"Authorization": auth_token},
+                )
+                print(response.status_code)
+                print(response.content)
+            except Exception as e:
+                print(str(e))
+            time.sleep(3)
 
 
 def send_mail(hilights: List[Post]) -> None:
@@ -68,7 +70,13 @@ def send_mail(hilights: List[Post]) -> None:
 
 def test_mail() -> None:
     post = Post(
-        id=1, likes=2, page=1, time=None, url="test_url", content="test_content"
+        id=1,
+        likes=2,
+        page=1,
+        time=datetime.datetime.now(),
+        url="test_url",
+        content="test_content",
+        content_plain="test content",
     )
     send_mail([post])
     send_tg([post])

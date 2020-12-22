@@ -1,6 +1,7 @@
 beautifulsoup4
 black
 Flask-API
+Flask-SQLAlchemy
 isort
 PyJWT
 pip-tools
@@ -8,3 +9,4 @@ python-dotenv
 python-dateutil
 requests
 sendgrid
+sqlalchemy-pyodbc-mssql
