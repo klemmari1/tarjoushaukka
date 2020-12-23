@@ -2,25 +2,13 @@ import datetime
 import time
 from typing import List
 
-import jwt
 import requests
 import sendgrid
 from sendgrid import Content, Email, Mail
 
 import settings
 from posts import Post
-
-
-def get_auth_token():
-    try:
-        payload = {
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=10),
-            "iat": datetime.datetime.utcnow(),
-            "sub": "dummy",
-        }
-        return jwt.encode(payload, settings.TG_KEY, algorithm="HS256"), True
-    except Exception as e:
-        return e, False
+from producer import publish_sale_alert
 
 
 def send_tg(hilights: List[Post]) -> None:
@@ -28,19 +16,8 @@ def send_tg(hilights: List[Post]) -> None:
         return
     for hilight in hilights:
         message = f"{hilight.url}\n\n{hilight.content_plain}"
-        auth_token, success = get_auth_token()
-        if success:
-            try:
-                response = requests.post(
-                    settings.TG_SEND_URL,
-                    data=message.encode("utf-8"),
-                    headers={"Authorization": auth_token},
-                )
-                print(response.status_code)
-                print(response.content)
-            except Exception as e:
-                print(str(e))
-            time.sleep(3)
+        publish_sale_alert("io-tech", message)
+        time.sleep(3)
 
 
 def send_mail(hilights: List[Post]) -> None:
@@ -57,7 +34,6 @@ def send_mail(hilights: List[Post]) -> None:
     content = Content("text/html", message)
     print(settings.FROM_EMAIL)
     print(settings.TO_EMAIL)
-    print(settings.EMAIL_API_KEY)
 
     mail = Mail(from_email, settings.TO_EMAIL, subject, content)
     try:
@@ -66,21 +42,3 @@ def send_mail(hilights: List[Post]) -> None:
         print(response.body)
     except Exception as e:
         print(str(e))
-
-
-def test_mail() -> None:
-    post = Post(
-        id=1,
-        likes=2,
-        page=1,
-        time=datetime.datetime.now(),
-        url="test_url",
-        content="test_content",
-        content_plain="test content",
-    )
-    send_mail([post])
-    send_tg([post])
-
-
-if __name__ == "__main__":
-    test_mail()

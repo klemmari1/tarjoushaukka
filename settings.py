@@ -31,6 +31,4 @@ TO_EMAIL = os.getenv("TO_EMAIL", "a@b.com, b@a.com").split(", ")
 
 EMAIL_API_KEY = os.getenv("EMAIL_API_KEY", "test")
 
-TG_SEND_URL = os.getenv("TG_SEND_URL", "http://localhost:5000")
-
-TG_KEY = os.getenv("TG_KEY", "test")
+RABBIT_MQ_URL = os.getenv("RABBIT_MQ_URL", "test")

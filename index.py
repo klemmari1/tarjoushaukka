@@ -8,6 +8,7 @@ from post_service import delete_all_posts, delete_old_posts, fetch_posts, get_po
 from posts import db
 
 app = FlaskAPI(__name__)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 @app.route("/", methods=["GET"])
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     app.app_context().push()
     db.create_all()
 
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
 else:
     driver = "{ODBC Driver 17 for SQL Server}"
     db_name = settings.DATABASE_NAME

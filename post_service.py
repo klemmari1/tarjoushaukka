@@ -51,12 +51,12 @@ def get_last_page_url() -> str:
     return url
 
 
-def add_hilight(post: Post, hilights: List[Post], prev_likes: int):
+def add_hilight(post: Post, hilights: List[Post], prev_likes: int) -> None:
     if (
         prev_likes < 5
         and post.likes >= 5
         and (datetime.now(timezone.utc) - post.time).total_seconds()
-        <= 3 * 60 * 60  # 5 hours
+        <= 5 * 60 * 60  # 5 hours
     ):
         hilights.append(post)
 
@@ -134,9 +134,6 @@ def fetch_posts():
     db.session.commit()
 
     hilights = hilights1 + hilights2
-    hilights = sorted(hilights, key=lambda item: item.time, reverse=True)[
-        :2
-    ]  # Limit hilights to latest 2.
     send_mail(hilights)
     send_tg(hilights)
 
@@ -148,19 +145,3 @@ def delete_old_posts() -> None:
     for post in posts:
         db.session.delete(post)
     db.session.commit()
-
-
-if __name__ == "__main__":
-    from sqlalchemy import create_engine
-    from index import app
-
-    conn_str = "sqlite:///app.db"
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = conn_str
-
-    db.init_app(app)
-    app.app_context().push()
-    db.create_all()
-
-    db.create_all()
-    fetch_posts()

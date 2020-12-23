@@ -3,7 +3,7 @@ black
 Flask-API
 Flask-SQLAlchemy
 isort
-PyJWT
+pika
 pip-tools
 python-dotenv
 python-dateutil
