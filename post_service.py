@@ -19,10 +19,8 @@ def get_posts() -> List[Post]:
 
 
 def delete_all_posts() -> None:
-    posts = Post.query.all()
-    for post in posts:
-        db.session.delete(post)
-    db.session.commit()
+    db.drop_all()
+    db.create_all()
 
 
 def print_posts() -> None:
@@ -51,18 +49,19 @@ def get_last_page_url() -> str:
     return url
 
 
-def add_hilight(post: Post, hilights: List[Post], prev_likes: int) -> None:
-    if (
-        prev_likes < 5
-        and post.likes >= 5
-        and (datetime.now(timezone.utc) - post.time).total_seconds()
-        <= 3 * 60 * 60  # >=5 likes within the first 3h
-    ) or (
-        prev_likes < 2
-        and post.likes >= 2
-        and (datetime.now(timezone.utc) - post.time).total_seconds()
-        <= 30 * 60  # >=2 likes within the first 0.5h
+def add_hilight(post: Post, hilights: List[Post]) -> None:
+    seconds_since_post = (datetime.now(timezone.utc) - post.time).total_seconds()
+    if not post.is_sent and (
+        (
+            post.likes >= 5
+            and seconds_since_post <= 3 * 60 * 60  # >=5 likes within the first 3h
+        )
+        or (
+            post.likes >= 2
+            and seconds_since_post <= 30 * 60  # >=2 likes within the first 0.5h
+        )
     ):
+        post.is_sent = True
         hilights.append(post)
 
 
@@ -74,8 +73,10 @@ def handle_bs_and_create_hilights(
 ) -> None:
     post_id = int(post_bs["data-content"].split("-")[-1])
     post_url = post_bs.find("a", {"class": "u-concealed"})["href"]
-    post_content = str(post_bs.find("div", {"class": "bbWrapper"}))
-    post_content_plain = post_bs.find("div", {"class": "bbWrapper"}).text
+    post_content = post_bs.find("div", {"class": "bbWrapper"})
+    post_content_fist_link = post_bs.select_one("a")["href"]
+    post_content_html = str(post_content).strip()
+    post_content_plain = f"{post_content.text.strip()}\n\n{post_content_fist_link}"
     post_datetime = parse(post_bs.find("time", {"class": "u-dt"})["datetime"])
     reactions_link = post_bs.find("a", {"class": "reactionsBar-link"})
     reactions_count = 0
@@ -96,15 +97,17 @@ def handle_bs_and_create_hilights(
             page=page_number,
             time=post_datetime,
             url=settings.BASE_URL + post_url,
-            content=post_content.strip(),
-            content_plain=post_content_plain.strip(),
+            content=post_content_html,
+            content_plain=post_content_plain,
+            is_sent=False,
         )
         db.session.add(post)
-        add_hilight(post, hilights, 0)
+        add_hilight(post, hilights)
     else:
-        prev_likes = existing_post.likes
+        existing_post.content = post_content_html
+        existing_post.content_plain = post_content_plain
         existing_post.likes = reactions_count
-        add_hilight(existing_post, hilights, prev_likes)
+        add_hilight(existing_post, hilights)
 
 
 def fetch_hilights_from_url(
