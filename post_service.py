@@ -56,7 +56,12 @@ def add_hilight(post: Post, hilights: List[Post], prev_likes: int) -> None:
         prev_likes < 5
         and post.likes >= 5
         and (datetime.now(timezone.utc) - post.time).total_seconds()
-        <= 5 * 60 * 60  # 5 hours
+        <= 3 * 60 * 60  # >=5 likes within the first 3h
+    ) or (
+        prev_likes < 2
+        and post.likes >= 2
+        and (datetime.now(timezone.utc) - post.time).total_seconds()
+        <= 30 * 60  # >=2 likes within the first 0.5h
     ):
         hilights.append(post)
 
@@ -73,13 +78,15 @@ def handle_bs_and_create_hilights(
     post_content_plain = post_bs.find("div", {"class": "bbWrapper"}).text
     post_datetime = parse(post_bs.find("time", {"class": "u-dt"})["datetime"])
     reactions_link = post_bs.find("a", {"class": "reactionsBar-link"})
-    reactions_count = 3
+    reactions_count = 0
     if reactions_link:
         reactions_text = reactions_link.text
         p = re.compile(" ja (.*) muuta")
         reactions = p.findall(reactions_text)
         if reactions:
-            reactions_count += int(reactions[0])
+            reactions_count += int(reactions[0]) + 3
+        elif " ja " in reactions_text:
+            reactions_count = 2
 
     existing_post = next((x for x in saved_posts if x.id == post_id), None)
     if not existing_post:
