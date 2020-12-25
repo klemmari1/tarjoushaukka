@@ -12,15 +12,17 @@ from sqlalchemy import desc
 
 import settings
 from mail_service import send_mail, send_tg
-from posts import Post, db
+from models.db import db
+from models.emails import Email
+from models.posts import Post
 
 
 def get_posts() -> List[Post]:
     return Post.query.order_by(desc(Post.time)).all()
 
 
-def delete_all_posts() -> None:
-    db.drop_all()
+def drop_post_table() -> None:
+    Post.__table__.drop(db.engine)
     db.create_all()
 
 
@@ -158,3 +160,20 @@ def delete_old_posts() -> None:
     for post in posts:
         db.session.delete(post)
     db.session.commit()
+
+
+def subscribe_email(email_address: str) -> bool:
+    email = Email.query.get(email_address)
+    if not email:
+        email = Email(email=email_address)
+        email.subscribe()
+        return True
+    return False
+
+
+def unsubscribe_email(email_address: str) -> bool:
+    email = Email.query.get(email_address)
+    if email:
+        email.unsubscribe()
+        return True
+    return False

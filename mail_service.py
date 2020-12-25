@@ -7,7 +7,8 @@ import sendgrid
 from sendgrid import Content, Email, Mail
 
 import settings
-from posts import Post
+from models.emails import Email
+from models.posts import Post
 from producer import publish_sale_alert
 
 
@@ -32,8 +33,10 @@ def send_mail(hilights: List[Post]) -> None:
     from_email = Email(settings.FROM_EMAIL)
     subject = "You have new sale alerts!"
     content = Content("text/html", message)
+
     print(settings.FROM_EMAIL)
-    print(settings.TO_EMAIL)
+    to_emails = [email.email for email in Email.query.all()]
+    print(to_emails)
 
     mail = Mail(from_email, settings.TO_EMAIL, subject, content)
     try:

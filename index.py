@@ -1,19 +1,50 @@
 import urllib
 
+from flask import Flask, redirect, render_template, request, url_for
 from flask.json import jsonify
 from flask_api import FlaskAPI
 
 import settings
-from post_service import delete_all_posts, delete_old_posts, fetch_posts, get_posts
-from posts import db
+from models.db import db
+from services import (
+    delete_old_posts,
+    drop_post_table,
+    fetch_posts,
+    get_posts,
+    subscribe_email,
+    unsubscribe_email,
+)
 
 app = FlaskAPI(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 @app.route("/", methods=["GET"])
-def home():
-    return {"hello": "world"}
+def home(success=None, warning=None):
+    return render_template("index.html", success=success, warning=warning)
+
+
+@app.route("/", methods=["POST"])
+def handle_email_form():
+    sub_type = request.form["sub-type"]
+    email_input = request.form["email-input"]
+    success = None
+    warning = None
+
+    if sub_type == "subscribe":
+        is_subscribed = subscribe_email(email_input)
+        if is_subscribed:
+            success = "Email subscribed to sale alerts!"
+        else:
+            warning = "Email already subscribed to sale alerts!"
+        return home(success=success, warning=warning)
+    elif sub_type == "unsubscribe":
+        is_unsubscribed = unsubscribe_email(email_input)
+        if is_unsubscribed:
+            success = "Email unsubscribed from sale alerts!"
+        else:
+            warning = "Email is not subscribed to sale alerts!"
+        return home(success=success, warning=warning)
 
 
 @app.route("/posts/", methods=["GET"])
@@ -34,8 +65,8 @@ def posts_delete_old():
 
 
 @app.route("/posts/delete_all/", methods=["GET"])
-def posts_delete_all():
-    delete_all_posts()
+def drop_posts():
+    drop_post_table()
     return {"status": "ok"}
 
 

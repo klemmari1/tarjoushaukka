@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 if os.path.exists(".env"):
     load_dotenv()
 
-BASE_URL = "https://bbs.io-tech.fi/"
+BASE_URL = "https://bbs.io-tech.fi"
 
 POSTS_URL = "https://bbs.io-tech.fi/threads/hyvaet-tarjoukset-ei-keskustelua.151/"
 
@@ -26,8 +26,6 @@ DATABASE_USER = os.getenv("DATABASE_USER", "test")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "test")
 
 FROM_EMAIL = os.getenv("FROM_EMAIL", "a@b.com")
-
-TO_EMAIL = os.getenv("TO_EMAIL", "a@b.com, b@a.com").split(", ")
 
 EMAIL_API_KEY = os.getenv("EMAIL_API_KEY", "test")
 

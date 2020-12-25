@@ -2,12 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import NewType
 
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
-
-
-ADT = NewType("ADT", datetime)  # timezone aware datetime
+from models.db import db
 
 
 @dataclass
@@ -15,7 +10,7 @@ class Post(db.Model):
     id: int
     likes: int
     page: int
-    time: ADT
+    time: datetime
     url: str
     content: str
     content_plain: str
