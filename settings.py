@@ -29,4 +29,6 @@ FROM_EMAIL = os.getenv("FROM_EMAIL", "a@b.com")
 
 EMAIL_API_KEY = os.getenv("EMAIL_API_KEY", "test")
 
-RABBIT_MQ_URL = os.getenv("RABBIT_MQ_URL", "test")
+EXTERNAL_SEND_URL = os.getenv("EXTERNAL_SEND_URL", "test")
+
+EXTERNAL_SEND_KEY = os.getenv("EXTERNAL_SEND_KEY", "test")

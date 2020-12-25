@@ -3,8 +3,8 @@ black
 Flask-API
 Flask-SQLAlchemy
 isort
-pika
 pip-tools
+PyJWT
 python-dotenv
 python-dateutil
 pytz
