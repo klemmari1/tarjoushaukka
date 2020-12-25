@@ -26,6 +26,7 @@ pyodbc==4.0.30            # via sqlalchemy-pyodbc-mssql
 python-dateutil==2.8.1    # via -r requirements.in
 python-dotenv==0.15.0     # via -r requirements.in
 python-http-client==3.3.1  # via sendgrid
+pytz==2020.5              # via -r requirements.in
 regex==2020.11.13         # via black
 requests==2.25.0          # via -r requirements.in
 sendgrid==6.4.8           # via -r requirements.in

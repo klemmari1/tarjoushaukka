@@ -3,6 +3,7 @@ import re
 from datetime import datetime, timezone
 from typing import List, Tuple
 
+import pytz
 import requests
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
@@ -50,7 +51,9 @@ def get_last_page_url() -> str:
 
 
 def add_hilight(post: Post, hilights: List[Post]) -> None:
-    seconds_since_post = (datetime.now(timezone.utc) - post.time).total_seconds()
+    tz = pytz.timezone("Europe/Helsinki")
+    post_time = post.time.replace(tzinfo=tz)
+    seconds_since_post = (datetime.now(tz) - post_time).total_seconds()
     if not post.is_sent and (
         (
             post.likes >= 5
