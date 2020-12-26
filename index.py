@@ -1,6 +1,6 @@
 import urllib
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, session, url_for
 from flask.json import jsonify
 from flask_api import FlaskAPI
 
@@ -11,34 +11,36 @@ from post_service import delete_old_posts, drop_post_table, fetch_posts, get_pos
 
 app = FlaskAPI(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.secret_key = settings.SECRET_KEY
 
 
 @app.route("/", methods=["GET"])
 def home(success=None, warning=None):
-    return render_template("index.html", success=success, warning=warning)
+    return render_template(
+        "index.html",
+        success=session.pop("success", None),
+        warning=session.pop("warning", None),
+    )
 
 
 @app.route("/", methods=["POST"])
 def handle_email_form():
     sub_type = request.form["sub-type"]
     email_input = request.form["email-input"]
-    success = None
-    warning = None
 
     if sub_type == "subscribe":
         is_subscribed = subscribe_email(email_input)
         if is_subscribed:
-            success = "Email subscribed to sale alerts!"
+            session["success"] = "Email subscribed to sale alerts!"
         else:
-            warning = "Email already subscribed to sale alerts!"
-        return home(success=success, warning=warning)
+            session["warning"] = "Email already subscribed to sale alerts!"
     elif sub_type == "unsubscribe":
         is_unsubscribed = unsubscribe_email(email_input)
         if is_unsubscribed:
-            success = "Email unsubscribed from sale alerts!"
+            session["success"] = "Email unsubscribed from sale alerts!"
         else:
-            warning = "Email is not subscribed to sale alerts!"
-        return home(success=success, warning=warning)
+            session["warning"] = "Email is not subscribed to sale alerts!"
+    return redirect(url_for("home"))
 
 
 @app.route("/posts/", methods=["GET"])

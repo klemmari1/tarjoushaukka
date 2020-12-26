@@ -19,6 +19,8 @@ HEADERS = {
 
 
 # Load ENV variables
+SECRET_KEY = os.getenv("SECRET_KEY", "test")
+
 DATABASE_NAME = os.getenv("DATABASE_NAME", "test")
 
 DATABASE_USER = os.getenv("DATABASE_USER", "test")
