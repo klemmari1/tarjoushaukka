@@ -79,9 +79,13 @@ def handle_bs_and_create_hilights(
     post_id = int(post_bs["data-content"].split("-")[-1])
     post_url = post_bs.find("a", {"class": "u-concealed"})["href"]
     post_content = post_bs.find("div", {"class": "bbWrapper"})
-    post_content_fist_link = post_bs.select_one("a")["href"]
+    post_content_fist_link = post_content.select_one("a") or ""
+    if post_content_fist_link:
+        post_content_fist_link = post_content_fist_link["href"]
     post_content_html = str(post_content).strip()
-    post_content_plain = f"{post_content.text.strip()}\n\n{post_content_fist_link}"
+    post_content_plain = (
+        f"{post_content.text.strip()}\n\n{post_content_fist_link}".strip()
+    )
     post_datetime = parse(post_bs.find("time", {"class": "u-dt"})["datetime"])
     reactions_link = post_bs.find("a", {"class": "reactionsBar-link"})
     reactions_count = 0
@@ -121,6 +125,9 @@ def fetch_hilights_from_url(
     hilights: List[Post] = []
 
     soup = get_soup(url)
+    # Replace embedded link elements with the urls of the element.
+    for embedded_link in soup.find_all("div", {"class": "bbCodeBlock--unfurl"}):
+        embedded_link.replace_with(embedded_link["data-url"])
     posts = soup.findAll("article", {"class": "message"})
     for post_bs in posts:
         handle_bs_and_create_hilights(hilights, post_bs, saved_posts, page_number)
