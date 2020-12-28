@@ -17,7 +17,7 @@ from models.posts import Post
 def get_auth_token():
     try:
         payload = {
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=10),
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=30),
             "iat": datetime.datetime.utcnow(),
             "sub": "tarjoushaukka",
         }
