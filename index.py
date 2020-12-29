@@ -26,7 +26,7 @@ def home(success=None, warning=None):
 @app.route("/", methods=["POST"])
 def handle_email_form():
     sub_type = request.form["sub-type"]
-    email_input = request.form["email-input"]
+    email_input = request.form["email-input"][:120]
 
     if sub_type == "subscribe":
         is_subscribed = subscribe_email(email_input)

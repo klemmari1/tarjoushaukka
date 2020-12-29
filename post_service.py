@@ -22,7 +22,10 @@ def get_posts() -> List[Post]:
 
 
 def drop_post_table() -> None:
-    Post.__table__.drop(db.engine)
+    try:
+        Post.__table__.drop(db.engine)
+    except:
+        pass
     db.create_all()
 
 
@@ -98,14 +101,16 @@ def handle_bs_and_create_hilights(
     post_id = int(post_bs["data-content"].split("-")[-1])
     post_url = post_bs.find("a", {"class": "u-concealed"})["href"]
     post_content = post_bs.find("div", {"class": "bbWrapper"})
-    post_content_html = str(post_content).strip()
+    post_content_html = str(post_content).strip()[:8000]
     replace_embedded_links(post_content)
     post_content_plain = post_content.text.strip()
     remove_blockquotes(post_content)
     post_content_fist_link = post_content.find("a", {"class": "link--external"}) or ""
     if post_content_fist_link:
         post_content_fist_link = post_content_fist_link["href"]
-    post_content_plain = f"{post_content_plain}\n\n{post_content_fist_link}".strip()
+    post_content_plain = f"{post_content_plain}\n\n{post_content_fist_link}".strip()[
+        :8000
+    ]
     post_datetime = parse(post_bs.find("time", {"class": "u-dt"})["datetime"])
     reactions_link = post_bs.find("a", {"class": "reactionsBar-link"})
     reactions_count = 0

@@ -21,8 +21,8 @@ class Post(db.Model):
     page = db.Column(db.Integer)
     time = db.Column(db.DateTime)
     url = db.Column(db.String(1000))
-    content = db.Column(db.String(5000))
-    content_plain = db.Column(db.String(5000))
+    content = db.Column(db.String(8000))
+    content_plain = db.Column(db.String(8000))
     is_sent = db.Column(db.Boolean())
 
     def __repr__(self):
