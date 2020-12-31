@@ -92,6 +92,12 @@ def replace_embedded_links(soup):
         embedded_link.replace_with(embedded_link["data-url"])
 
 
+def replace_external_links(soup):
+    # Replace external link elements with the hrefs of the element.
+    for external_link in soup.find_all("a", {"class": "link--external"}):
+        external_link.replace_with(external_link["href"])
+
+
 def handle_bs_and_create_hilights(
     hilights: List[Post],
     post_bs: BeautifulSoup,
@@ -103,14 +109,9 @@ def handle_bs_and_create_hilights(
     post_content = post_bs.find("div", {"class": "bbWrapper"})
     post_content_html = str(post_content).strip()[:8000]
     replace_embedded_links(post_content)
-    post_content_plain = post_content.text.strip()
+    replace_external_links(post_content)
     remove_blockquotes(post_content)
-    post_content_fist_link = post_content.find("a", {"class": "link--external"}) or ""
-    if post_content_fist_link:
-        post_content_fist_link = post_content_fist_link["href"]
-    post_content_plain = f"{post_content_plain}\n\n{post_content_fist_link}".strip()[
-        :8000
-    ]
+    post_content_plain = post_content.text.strip()[:8000]
     post_datetime = parse(post_bs.find("time", {"class": "u-dt"})["datetime"])
     reactions_link = post_bs.find("a", {"class": "reactionsBar-link"})
     reactions_count = 0
