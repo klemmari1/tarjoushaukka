@@ -5,7 +5,7 @@ from typing import List
 import jwt
 import requests
 import sendgrid
-from sendgrid import Content
+from sendgrid import Content, To
 from sendgrid import Email as SEmail
 from sendgrid import Mail as SMail
 
@@ -59,12 +59,17 @@ def send_mail(hilights: List[Post]) -> None:
     subject = "You have new sale alerts!"
     content = Content("text/html", message)
 
-    print(settings.FROM_EMAIL)
-    to_emails = [email.email for email in Email.query.all()]
-    print(to_emails)
+    to_emails = [To(email=email.email) for email in Email.query.all()]
 
-    mail = SMail(from_email, to_emails, subject, content)
+    mail = SMail(
+        from_email=from_email,
+        to_emails=to_emails,
+        subject=subject,
+        html_content=content,
+        is_multiple=True,
+    )
     try:
+        print("SENDING MAIL...")
         response = sg.client.mail.send.post(request_body=mail.get())
         print(response.status_code)
         print(response.body)

@@ -61,7 +61,7 @@ def add_hilight(post: Post, hilights: List[Post]) -> None:
     seconds_since_post = (datetime.now(tz) - post_time).total_seconds()
     if not post.is_sent and (
         (
-            post.likes >= 5
+            post.likes >= 7
             and seconds_since_post <= 3 * 60 * 60  # >=5 likes within the first 3h
         )
         or (
