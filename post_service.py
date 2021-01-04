@@ -57,16 +57,20 @@ def get_last_page_url() -> str:
 
 def add_hilight(post: Post, hilights: List[Post]) -> None:
     tz = pytz.timezone("Europe/Helsinki")
-    post_time = post.time.replace(tzinfo=tz)
+    post_time = tz.localize(post.time)
     seconds_since_post = (datetime.now(tz) - post_time).total_seconds()
     if not post.is_sent and (
         (
-            post.likes >= 7
-            and seconds_since_post <= 3 * 60 * 60  # >=5 likes within the first 3h
+            post.likes >= 8
+            and seconds_since_post <= 3 * 60 * 60  # >=8 likes within the first 3h
+        )
+        or (
+            post.likes >= 5
+            and seconds_since_post <= 60 * 60  # >=5 likes within the first hour
         )
         or (
             post.likes >= 2
-            and seconds_since_post <= 30 * 60  # >=2 likes within the first 0.5h
+            and seconds_since_post <= 20 * 60  # >=2 likes within the first 20 mins
         )
     ):
         post.is_sent = True
