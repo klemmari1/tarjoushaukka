@@ -5,9 +5,8 @@ from typing import List
 import jwt
 import requests
 import sendgrid
-from sendgrid import Content, To
-from sendgrid import Email as SEmail
-from sendgrid import Mail as SMail
+from flask import Request
+from sendgrid import Content, From, Mail, To
 
 import settings
 from models.emails import Email
@@ -46,22 +45,29 @@ def send_post(hilights: List[Post]) -> None:
         time.sleep(3)
 
 
-def send_mail(hilights: List[Post]) -> None:
+def send_mail(hilights: List[Post], request: Request = None) -> None:
     if not hilights:
         return
-    hilight_messages = (
+    title_section = f'<h2><a href="{request.url_root if request else ""}">Tarjoushaukka</a> sale alerts</h2>'
+    hilight_messages_section = list(
         f"{hilight.url}<br/><br/>{hilight.content}" for hilight in hilights
     )
-    message = "<br/><br/><br/><br/>".join(hilight_messages)
+    unsubscribe_section = f'<p style="font-size:12px"><a href="{request.url_root if request else ""}?unsubscribe=-email-">Unsubscribe</a> from sale alerts</p>'
+    sections = [title_section] + hilight_messages_section + [unsubscribe_section]
+    message = "<br/><br/><br/>".join(sections)
 
     sg = sendgrid.SendGridAPIClient(api_key=settings.EMAIL_API_KEY)
-    from_email = SEmail(settings.FROM_EMAIL)
+    from_email = From(settings.FROM_EMAIL, "Tarjoushaukka")
     subject = "You have new sale alerts!"
     content = Content("text/html", message)
 
-    to_emails = [To(email=email.email) for email in Email.query.all()]
+    emails = Email.query.all()
+    to_emails = [
+        To(email=email.email, substitutions={"-email-": email.email})
+        for email in emails
+    ]
 
-    mail = SMail(
+    mail = Mail(
         from_email=from_email,
         to_emails=to_emails,
         subject=subject,
@@ -70,6 +76,8 @@ def send_mail(hilights: List[Post]) -> None:
     )
     try:
         print("SENDING MAIL...")
+        print(emails)
+        print(message)
         response = sg.client.mail.send.post(request_body=mail.get())
         print(response.status_code)
         print(response.body)

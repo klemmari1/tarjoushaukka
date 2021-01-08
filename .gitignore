@@ -47,3 +47,4 @@ posts.pkl
 .env
 az_commands.txt
 app.db
+.idea/

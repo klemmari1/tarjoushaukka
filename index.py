@@ -1,7 +1,6 @@
 import urllib
 
-from flask import Flask, redirect, render_template, request, session, url_for
-from flask.json import jsonify
+from flask import redirect, render_template, request, session, url_for
 from flask_api import FlaskAPI
 
 import settings
@@ -15,7 +14,14 @@ app.secret_key = settings.SECRET_KEY
 
 
 @app.route("/", methods=["GET"])
-def home(success=None, warning=None):
+def home():
+    unsubscribe = request.args.get("unsubscribe")
+    if unsubscribe:
+        is_unsubscribed = unsubscribe_email(unsubscribe)
+        if is_unsubscribed:
+            session["success"] = "Email unsubscribed from sale alerts!"
+        else:
+            session["warning"] = "Email is not subscribed to sale alerts!"
     return render_template(
         "index.html",
         success=session.pop("success", None),
@@ -50,7 +56,7 @@ def posts_list():
 
 @app.route("/posts/fetch/", methods=["GET"])
 def posts_fetch():
-    fetch_posts()
+    fetch_posts(request)
     return {"status": "ok"}
 
 

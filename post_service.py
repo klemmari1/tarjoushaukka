@@ -1,19 +1,18 @@
 import pprint
 import re
-from datetime import datetime, timezone
-from typing import List, Tuple
+from datetime import datetime
+from typing import List
 
 import pytz
 import requests
 from bs4 import BeautifulSoup
 from dateutil.parser import parse
-from flask import jsonify
+from flask import Request, jsonify
 from sqlalchemy import desc
 
 import settings
 from mail_service import send_mail, send_post
 from models.db import db
-from models.emails import Email
 from models.posts import Post
 
 
@@ -57,7 +56,9 @@ def get_last_page_url() -> str:
 
 def add_hilight(post: Post, hilights: List[Post]) -> None:
     tz = pytz.timezone("Europe/Helsinki")
-    post_time = tz.localize(post.time)
+    post_time = post.time
+    if post_time.tzinfo is None or post_time.tzinfo.utcoffset(post_time) is None:
+        post_time = tz.localize(post_time)
     seconds_since_post = (datetime.now(tz) - post_time).total_seconds()
     if not post.is_sent and (
         (
@@ -162,7 +163,7 @@ def fetch_hilights_from_url(
     return hilights
 
 
-def fetch_posts():
+def fetch_posts(request: Request = None):
     last_page_url = get_last_page_url()
     last_page_url_split = last_page_url.split("-")
     last_page_number = int(last_page_url_split[-1])
@@ -184,7 +185,7 @@ def fetch_posts():
     db.session.commit()
 
     hilights = hilights1 + hilights2
-    send_mail(hilights)
+    send_mail(hilights, request)
     send_post(hilights)
 
 
