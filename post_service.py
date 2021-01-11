@@ -70,8 +70,8 @@ def add_hilight(post: Post, hilights: List[Post]) -> None:
             and seconds_since_post <= 60 * 60  # >=5 likes within the first hour
         )
         or (
-            post.likes >= 2
-            and seconds_since_post <= 20 * 60  # >=2 likes within the first 20 mins
+            post.likes >= 3
+            and seconds_since_post <= 30 * 60  # >=3 likes within the first 30 mins
         )
     ):
         post.is_sent = True
