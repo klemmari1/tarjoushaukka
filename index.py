@@ -19,9 +19,9 @@ def home():
     if unsubscribe:
         is_unsubscribed = unsubscribe_email(unsubscribe)
         if is_unsubscribed:
-            session["success"] = "Email unsubscribed from sale alerts!"
+            session["success"] = "Email unsubscribed from bargain alerts!"
         else:
-            session["warning"] = "Email is not subscribed to sale alerts!"
+            session["warning"] = "Email is not subscribed to bargain alerts!"
     return render_template(
         "index.html",
         success=session.pop("success", None),
@@ -37,15 +37,15 @@ def handle_email_form():
     if sub_type == "subscribe":
         is_subscribed = subscribe_email(email_input)
         if is_subscribed:
-            session["success"] = "Email subscribed to sale alerts!"
+            session["success"] = "Email subscribed to bargain alerts!"
         else:
-            session["warning"] = "Email already subscribed to sale alerts!"
+            session["warning"] = "Email already subscribed to bargain alerts!"
     elif sub_type == "unsubscribe":
         is_unsubscribed = unsubscribe_email(email_input)
         if is_unsubscribed:
-            session["success"] = "Email unsubscribed from sale alerts!"
+            session["success"] = "Email unsubscribed from bargain alerts!"
         else:
-            session["warning"] = "Email is not subscribed to sale alerts!"
+            session["warning"] = "Email is not subscribed to bargain alerts!"
     return redirect(url_for("home"))
 
 

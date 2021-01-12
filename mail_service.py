@@ -48,17 +48,17 @@ def send_post(hilights: List[Post]) -> None:
 def send_mail(hilights: List[Post], request: Request = None) -> None:
     if not hilights:
         return
-    title_section = f'<h2><a href="{request.url_root if request else ""}">Tarjoushaukka</a> sale alerts</h2>'
+    title_section = f'<h2><a href="{request.url_root if request else ""}">Tarjoushaukka</a> bargain alerts</h2>'
     hilight_messages_section = list(
         f"{hilight.url}<br/><br/>{hilight.content}" for hilight in hilights
     )
-    unsubscribe_section = f'<p style="font-size:12px"><a href="{request.url_root if request else ""}?unsubscribe=-email-">Unsubscribe</a> from sale alerts</p>'
+    unsubscribe_section = f'<p style="font-size:12px"><a href="{request.url_root if request else ""}?unsubscribe=-email-">Unsubscribe</a> from bargain alerts</p>'
     sections = [title_section] + hilight_messages_section + [unsubscribe_section]
     message = "<br/><br/><br/>".join(sections)
 
     sg = sendgrid.SendGridAPIClient(api_key=settings.EMAIL_API_KEY)
     from_email = From(settings.FROM_EMAIL, "Tarjoushaukka")
-    subject = "You have new sale alerts!"
+    subject = "You have new bargain alerts!"
     content = Content("text/html", message)
 
     emails = Email.query.all()
