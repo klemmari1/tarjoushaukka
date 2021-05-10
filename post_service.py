@@ -91,16 +91,20 @@ def remove_blockquotes(soup):
         blockquote.decompose()
 
 
-def replace_embedded_links(soup):
+def replace_links(soup) -> bool:
+    has_links = False
+
     # Replace embedded link elements with the urls of the element.
     for embedded_link in soup.find_all("div", {"class": "bbCodeBlock--unfurl"}):
         embedded_link.replace_with(embedded_link["data-url"])
+        has_links = True
 
-
-def replace_external_links(soup):
     # Replace external link elements with the hrefs of the element.
     for external_link in soup.find_all("a", {"class": "link--external"}):
         external_link.replace_with(external_link["href"])
+        has_links = True
+
+    return has_links
 
 
 def handle_bs_and_create_hilights(
@@ -111,15 +115,22 @@ def handle_bs_and_create_hilights(
 ) -> None:
     post_id = int(post_bs["data-content"].split("-")[-1])
     post_url = post_bs.find("a", {"class": "u-concealed"})["href"]
+
     post_content = post_bs.find("div", {"class": "bbWrapper"})
     post_content_html = str(post_content).strip()[:8000]
-    replace_embedded_links(post_content)
-    replace_external_links(post_content)
+
+    has_links = replace_links(post_content)
+    if not has_links:
+        return
+
     remove_blockquotes(post_content)
+
     post_content_plain = post_content.text.strip()[:8000]
     post_datetime = parse(post_bs.find("time", {"class": "u-dt"})["datetime"])
+
     reactions_link = post_bs.find("a", {"class": "reactionsBar-link"})
     reactions_count = 0
+
     if reactions_link:
         reactions_text = reactions_link.text
         p = re.compile(" ja (.*) muuta")
