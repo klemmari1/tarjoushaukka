@@ -6,7 +6,8 @@ from flask_api import FlaskAPI
 import settings
 from mail_service import subscribe_email, unsubscribe_email
 from models.db import db
-from post_service import delete_old_posts, drop_post_table, fetch_posts, get_posts
+from post_service import (delete_old_posts, drop_post_table, fetch_posts,
+                          get_posts)
 
 app = FlaskAPI(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
