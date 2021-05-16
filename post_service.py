@@ -61,8 +61,14 @@ def add_hilight(post: Post, hilights: List[Post]) -> None:
         post_time = tz.localize(post_time)
     seconds_since_post = (datetime.now(tz) - post_time).total_seconds()
     if not post.is_sent and (
-        post.likes >= 6
-        and seconds_since_post <= 60 * 60  # >=6 likes within the first hour
+        (
+            post.likes >= 10
+            and seconds_since_post <= 3 * 60 * 60  # >=10 likes within the first 3h
+        )
+        or (
+            post.likes >= 6
+            and seconds_since_post <= 60 * 60  # >=6 likes within the first hour
+        )
     ):
         post.is_sent = True
         hilights.append(post)
